@@ -1,0 +1,463 @@
+---
+title: "ICT583 Assignment 2"
+author: "Supuni Agampodi"
+date: "2023-05-01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+The dataset used in this project was collected from mobile health care services provided in collaboration with elderly care centers operated by local non-governmental organizations. These health care services were offered to elderly individuals residing in different districts of Hong Kong. The services were provided free of charge over a ten-year period, specifically from 2008 to 2018. The dataset likely contains information related to the health status, demographics, and other relevant factors of the community-dwelling elderly population in Hong Kong during that time frame.
+
+```{r}
+setwd("D:/Supuni/Murdoch/Y2S2/ICT515-DS/Assignments/Assignment 2")
+data <- read.csv("dataset ICT583 2023.csv", header = TRUE, sep = ",")
+dim(data)
+head(data)
+tail(data)
+
+str(data)
+table(data$MMSE_class_binary)
+pairs(data[,2:13], lower.panel = NULL)
+
+```
+
+
+## Understand Data - Summary Statistics
+
+The summary statistics before data pre processing.
+
+
+```{r}
+
+names(data)
+
+# Continuous variables
+continuous <- c("Age", "Body_Height", "Body_Weight", "MNAa_total", "MNAb_total", "GDS")
+
+# Categorical variables
+categorical <- c("Gender", "Education_ID", "Financial_status", "Independent_or_depend_on_family",
+                 "Marital_status_ID", "MMSE_class_binary")
+
+data %>% select(all_of( categorical)) %>%  map(table)
+
+data %>% select(all_of( continuous)) %>%
+  map(., ~{
+    
+    c(
+    Mean = mean(.x, na.rm = T) %>% round(2),
+    SD = sd(.x, na.rm = T)%>% round(2)
+    )
+    
+  }
+)
+
+# missing values
+data %>% is.na %>% colSums()
+sum(is.na(data))
+
+summary(data)
+
+```
+
+
+## Missing Values 
+
+The total number of missing values for each variable was computed. Mean imputation and mode imputation [3] were done for continuous variables and categorical variables respectively.
+
+```{r}
+
+data %>% is.na %>% colSums()
+sum(is.na(data))
+
+# Impute missing values with mean value
+data$MNAb_total[is.na(data$MNAb_total)] <- mean(data$MNAb_total, na.rm = TRUE)
+data$MNAa_total[is.na(data$MNAa_total)] <- mean(data$MNAa_total, na.rm = TRUE)
+data$GDS[is.na(data$GDS)] <- mean(data$GDS, na.rm = TRUE)
+
+# # Impute missing values with mode 
+# data$Financial_status[is.na(data$Financial_status)] <- mfv(data$Financial_status, method = "discrete")
+# 
+# data$Marital_status_ID[is.na(data$Marital_status_ID)] <- mfv(data$Marital_status_ID, method = "discrete")
+# 
+# data$Education_ID[is.na(data$Education_ID)] <- mfv(data$Education_ID, method = "discrete")
+# 
+# data$Independent_or_depend_on_family[is.na(data$Independent_or_depend_on_family)] <- mfv(data$Independent_or_depend_on_family, method = "discrete")
+
+# Create a function to calculate the mode
+calculate_mode <- function(x) {
+  unique_x <- unique(x)
+  tab_x <- table(x)
+  mode_val <- unique_x[which.max(tab_x)]
+  return(mode_val)
+}
+
+# Impute missing values with mode
+data$Financial_status[is.na(data$Financial_status)] <- calculate_mode(data$Financial_status)
+data$Marital_status_ID[is.na(data$Marital_status_ID)] <- calculate_mode(data$Marital_status_ID)
+data$Education_ID[is.na(data$Education_ID)] <- calculate_mode(data$Education_ID)
+data$Independent_or_depend_on_family[is.na(data$Independent_or_depend_on_family)] <- calculate_mode(data$Independent_or_depend_on_family)
+
+
+
+data %>% select(all_of( categorical)) %>%  map(table)
+view(data)
+sum(is.na(data))
+summary(data)
+```
+# Summary Statistic after missing value imputation
+```{r}
+
+data %>% select(all_of( categorical)) %>%  map(table)
+
+data %>% select(all_of( continuous)) %>%
+  map(., ~{
+    
+    c(
+    Mean = mean(.x, na.rm = T) %>% round(2),
+    SD = sd(.x, na.rm = T)%>% round(2)
+    )
+    
+  }
+)
+
+```
+
+
+# change class
+```{r}
+
+data1 <- data %>%
+  mutate(across(all_of(categorical), as.factor))
+
+```
+
+
+
+# Corealtion
+```{r}
+
+corr = data %>% select_if(is.numeric) %>% 
+  cor(., method = "spearman") %>% round(2) 
+
+corr %>% write.csv("corr.csv") 
+
+corr
+
+```
+
+
+# Dummy Variable 
+```{r}
+
+f1 = function(x) gsub(1, "yes", x) %>%
+  gsub(0, "no", .) %>% as.character()
+
+data = data %>% mutate(MMSE = f1(data$MMSE_class_binary))
+
+str(data)
+
+```
+
+## change class
+
+The total number of missing values for each variable was computed. No record was excluded because there are no missing values for MMSE_class_binary variable. Mean imputation and mode imputation [3] were done for continuous variables and categorical variables respectively.
+
+```{r}
+
+# Categorical variables
+categorical1 <- c("Gender", "Education_ID", "Financial_status", "Independent_or_depend_on_family", "Marital_status_ID", "MMSE")
+
+data <- data %>%mutate(across(all_of(categorical1), as.factor))
+
+```
+
+
+## Visualization
+
+Boxplot, density plot and bar plot [4] were used to show difference in selected features between groups of MMSE.
+
+```{r}
+#plot(data, main = "Searching Outliers")
+data1<-data
+names(data)
+ggsave("MMSE_Age.png", width = 5, height = 3)
+ggplot(data=data1, aes(x=MMSE, y=Age))+geom_boxplot()
+
+ggsave("MMSE_BH.png", width = 5, height = 3)
+ggplot(data=data1, aes(x=MMSE, y=Body_Height))+geom_boxplot()
+
+ggsave("MMSE_BW.png", width = 5, height = 3)
+ggplot(data=data1, aes(x=MMSE, y=Body_Weight))+geom_boxplot()
+
+ggsave("MMSE_GDS.png", width = 5, height = 3)
+ggplot(data=data1, aes(x=MMSE, y=GDS))+geom_boxplot()
+
+ggsave("MMSE_MNAa.png", width = 5, height = 3)
+ggplot(data=data1, aes(x=MMSE, y=MNAa_total))+geom_boxplot()
+
+ggsave("MMSE_MNAb.png", width = 5, height = 3)
+ggplot(data=data1, aes(x=MMSE, y=MNAb_total))+geom_boxplot()
+
+ggsave("MMSE_BWd.png", width = 5, height = 3)
+ggplot(data, aes(Body_Weight, fill = MMSE)) + 
+  geom_density(alpha = .1)
+
+ggsave("MMSE_BHd.png", width = 5, height = 3)
+ggplot(data, aes(Body_Height, fill = MMSE)) + 
+  geom_density(alpha = .1)
+
+ggsave("MMSE_MNAbd.png", width = 5, height = 3)
+ggplot(data, aes(MNAa_total, fill = MMSE)) + 
+  geom_density(alpha = .1)
+
+ggsave("MMSE_MNAbd.png", width = 5, height = 3)
+ggplot(data, aes(MNAb_total, fill = MMSE)) + 
+  geom_density(alpha = .1)
+
+```
+```{r}
+names(data)
+
+ggsave("MMSE_Education.png", width = 5, height = 3)
+ggplot(data, aes(MMSE, fill = Education_ID)) + 
+  geom_bar(position = "dodge")
+
+
+ggsave("MMSE_Gender.png", width = 5, height = 3)
+ggplot(data, aes(MMSE, fill = Gender)) + 
+  geom_bar(position = "dodge")
+
+
+ggsave("MMSE_Financial_Status.png", width = 5, height = 3)
+ggplot(data, aes(MMSE, fill = Financial_status)) + 
+  geom_bar(position = "dodge")
+
+
+ggsave("MMSE_Marital_Status.png", width = 5, height = 3)
+ggplot(data, aes(MMSE, fill = Marital_status_ID)) + 
+  geom_bar(position = "dodge")
+
+
+ggsave("MMSE_Dependency.png", width = 5, height = 3)
+ggplot(data, aes(MMSE, fill = Independent_or_depend_on_family)) + 
+  geom_bar(position = "dodge")
+```
+
+
+## Scaling
+Centering and scaling were done for continuous variables, after which they have mean = 0 and SD = 1.
+
+
+```{r}
+
+data2 <- data %>% mutate_if(is.numeric, scale)
+#data2 = data %>% mutate_if(~ n_distinct(.) > 2, scale)
+
+str(data2)
+
+```
+
+## Partitioning
+The preprocessed data were randomly split into training dataset (70%) and testing dataset (30%), with a seed number set.
+
+```{r}
+
+set.seed(1)
+dim(data2)
+id <- createDataPartition(data2$MMSE, p = .7, list = F)
+
+training <- data2[ id,]
+
+testing <- data2[-id,]
+
+dim(training)
+dim(testing)
+
+```
+
+#Formula
+The conceptual framework of the project is presented as a formula for modeling.
+
+
+```{r}
+names(data2)
+form1 = MMSE ~ Age +  Gender + + Education_ID + GDS + Body_Height + MNAb_total + Independent_or_depend_on_family
+
+form1
+```
+##Logistic regression
+A logistic regression model was built, and the odds ratios were computed for the estimated log odds.
+
+```{r}
+str(data2)
+sum(is.na(training))
+
+logit_model<-glm(form1 , data = data2, family = binomial(logit))
+
+
+s = summary(logit_model)
+s
+
+lr_coef = s $ coefficients %>% as.data.frame() %>%
+  mutate( odds_ratio = exp(Estimate)) %>% round(3)
+
+lr_coef %>% write.csv("lr_coef.csv")
+
+lr_coef
+```
+
+##Models
+The logistic regression classifier and SVM classifier [5] were trained and used to generate predicted classes and probabilities. The performance metrics were computed based on the confusion matrix [6]. ROC curves of the models were compared [7].
+
+```{r}
+
+logit_prob = predict(logit_model, testing, "response")
+
+str(logit_prob)
+
+logit_pred <- round(predict(LGM, data2, type="response"))
+
+
+str(logit_pred)
+
+```
+
+```{r}
+# Assuming you have a logistic regression model named logit_model
+
+# Predict probabilities
+logit_prob <- predict(logit_model, newdata = testing, type = "response")
+
+# Check the structure of logit_prob
+str(logit_prob)
+
+# Round the predicted probabilities to get class predictions (0 or 1)
+logit_pred <- ifelse(logit_prob > 0.5, 1, 0)
+
+# Check the structure of logit_pred
+str(logit_pred)
+
+```
+
+
+
+```{r}
+
+#logit_perf = confusionMatrix(table(logit_pred, data[,"MMSE_class_binary"]))
+#logit_perf
+
+# Calculate the confusion matrix and performance metrics
+logit_perf <- confusionMatrix(data = logit_pred, reference = data[,"MMSE_class_binary"])
+
+# Print the performance metrics
+logit_perf
+```
+
+
+
+# ROC - Logistic Regression
+```{r}
+lr_roc = roc(testing$MMSE, logit_prob)
+lr_roc
+
+```
+
+
+# Support Vector Machine
+```{r}
+svm_model = svm(form1, training, probability = T)
+
+summary(svm_model)
+
+svm_pred = predict(svm_model, testing)
+
+str(svm_pred)
+
+svm_prob = predict(svm_model, testing, probability = T) %>%
+  attr("probabilities") %>% .[,1]
+
+
+str(svm_prob)
+
+
+```
+
+
+
+
+# SVM - Confusion Matrix
+```{r}
+
+#svm_perf = table(svm_pred, testing $ MMSE) %>% 
+ # confusionMatrix(., positive = "yes")
+
+svm.table = table(svm_pred,testing$MMSE)
+
+svm_perf = confusionMatrix(svm.table)
+svm_perf
+
+```
+
+
+# ROC -SVM
+```{r}
+svm_roc = roc(testing$MMSE, svm_prob)
+svm_roc
+
+```
+
+# Performance Metrix
+```{r}
+
+perf_metrices=
+cbind.data.frame(
+  lr = c(logit_perf$overall, logit_perf$byClass, AUC = lr_roc$auc),
+  svm = c(svm_perf$overall, svm_perf$byClass, AUC = svm_roc$auc)
+  ) %>%
+  round(3) %>%
+  mutate(best = apply(., 1, which.max)) 
+
+perf_metrices%>%
+  write.csv("perf_metrices.csv")
+
+perf_metrices
+
+```
+
+# ROC compare
+```{r}
+
+ggsave("roc.png", width = 6.5, height = 6.5)
+
+
+ggroc(
+  list(lr_roc, svm_roc),
+  legacy.axes = TRUE ) +
+  scale_color_discrete(
+    labels = c(
+      paste("Logistic Regression, AUC", round(lr_roc$auc, 3)),
+      paste("Support vector Machine, AUC", round(svm_roc$auc, 3))
+    )
+  ) +
+  labs(col = "Model") +
+  theme_classic() +
+  theme(legend.position = c(.8,.2))
+```
+
+## Reference List
+
+Reference List
+[1]   	R Core Team, "R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria," http://www. R-project. org/, 2016.
+[2]   	RStudio Team, "RStudio: integrated development for R. RStudio," Inc., Boston, MA, vol. 700, p. 879, 2015.
+[3]   	missMethods: Methods for Missing Data. R package version 0.4.0. (2022). [Online]. Available: https://CRAN.R-project.org/package=missMethods
+[4]   	H. Wickham et al., "Welcome to the Tidyverse," Journal of open source software, vol. 4, no. 43, p. 1686, 2019.
+[5]   	E. Dimitriadou, K. Hornik, F. Leisch, D. Meyer, and A. Weingessel, "Misc functions of the Department of Statistics (e1071), TU Wien," R package, vol. 1, pp. 5-24, 2008.
+[6]   	M. Kuhn, "Building predictive models in R using the caret package," Journal of statistical software, vol. 28, pp. 1-26, 2008.
+[7]   	X. Robin et al., "pROC: an open-source package for R and S+ to analyze and compare ROC curves," BMC bioinformatics, vol. 12, no. 1, pp. 1-8, 2011.
+[8]	Wikipedia, "Geriatric Depression Scale," [Online]. Available: https://en.wikipedia.org/wiki/Geriatric_Depression_Scale, Accessed on: June 2, 2023.
+
