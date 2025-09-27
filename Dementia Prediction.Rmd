@@ -1,5 +1,5 @@
 ---
-title: "ICT583 Assignment 2"
+title: "dementia prediction"
 author: "Supuni Agampodi"
 date: "2023-05-01"
 output: html_document
@@ -328,7 +328,7 @@ str(logit_pred)
 ```
 
 ```{r}
-# Assuming you have a logistic regression model named logit_model
+# logistic regression model
 
 # Predict probabilities
 logit_prob <- predict(logit_model, newdata = testing, type = "response")
@@ -460,4 +460,5 @@ Reference List
 [6]   	M. Kuhn, "Building predictive models in R using the caret package," Journal of statistical software, vol. 28, pp. 1-26, 2008.
 [7]   	X. Robin et al., "pROC: an open-source package for R and S+ to analyze and compare ROC curves," BMC bioinformatics, vol. 12, no. 1, pp. 1-8, 2011.
 [8]	Wikipedia, "Geriatric Depression Scale," [Online]. Available: https://en.wikipedia.org/wiki/Geriatric_Depression_Scale, Accessed on: June 2, 2023.
+
 
