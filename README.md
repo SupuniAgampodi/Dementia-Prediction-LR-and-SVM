@@ -22,6 +22,9 @@ The dataset used in this project was collected from mobile health care services 
 <img width="750" height="450" alt="image" src="https://github.com/user-attachments/assets/ef695dca-ef48-4d04-8705-1d5f5750a8fe" />
 
 ## Correlation Analysis
+
+<img width="706" height="293" alt="image" src="https://github.com/user-attachments/assets/abffc921-754d-49e3-aa7a-a881a5660a77" />
+
 Based on the analysis of the correlations between various factors and the MMSE, several observations can be made:
 Age exhibits the strongest positive correlation with the MMSE. This suggests that as individuals get older, there is an increased likelihood of higher risk of dementia. GDS value, which measures the severity of depression, also shows a positive correlation with the MMSE. A higher GDS value implies severe depression, and the positive correlation suggests that higher GDS values are associated with an increased risk of dementia. The financial status of individuals shows a positive correlation with the MMSE. This indicates that higher financial status may be associated with a lower risk of dementia.
 Education level demonstrates the strongest negative correlation with the MMSE score. This implies that as the education level decreases, the risk of dementia increases. The MNA scores, specifically MNAa_tot and MNAb_tot, exhibit a weak negative correlation with the MMSE. Lower MNA scores indicate a higher risk of malnutrition. The negative correlation suggests that as MNA scores decrease and the risk of malnutrition increases, the risk of dementia also increases.
